@@ -93,3 +93,30 @@ For more details, see the [Next.js deployment documentation](https://nextjs.org/
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Material UI Documentation](https://mui.com/material-ui/getting-started/)
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
+
+## Business Logic Details
+
+### Discount Tiers
+| Order Value | Discount Rate |
+|-------------|---------------|
+| $1,000      | 3%            |
+| $5,000      | 5%            |
+| $7,000      | 7%            |
+| $10,000     | 10%           |
+| $50,000     | 15%           |
+
+### Regional Tax Rates
+| Region | Tax Rate |
+|--------|----------|
+| AUK    | 6.85%    |
+| WLG    | 8.00%    |
+| WAI    | 6.25%    |
+| CHC    | 4.00%    |
+| TAS    | 8.25%    |
+
+## Calculation Formula
+1. Subtotal = Quantity × Price per item
+2. Discount = Apply highest applicable discount tier to subtotal
+3. Discounted Price = Subtotal - Discount
+4. Tax = Discounted Price × Regional tax rate
+5. Final Total = Discounted Price + Tax
