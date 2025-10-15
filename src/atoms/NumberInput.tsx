@@ -42,6 +42,7 @@ export const NumberInput: React.FC<NumberInputProps> = ({
       inputProps={{
         step: 'any',
         min: 0,
+        ...props.inputProps,
       }}
       {...props}
     />
