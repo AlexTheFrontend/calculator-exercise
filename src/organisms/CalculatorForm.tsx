@@ -13,8 +13,8 @@ import { calculateOrder } from '@/utils/calculator';
  * Calculator form organism - Complete form with all inputs and calculation logic
  */
 export const CalculatorForm: React.FC = () => {
-  const [quantity, setQuantity] = useState<number>(0);
-  const [pricePerItem, setPricePerItem] = useState<number>(0);
+  const [quantity, setQuantity] = useState<number | ''>('');
+  const [pricePerItem, setPricePerItem] = useState<number | ''>('');
   const [region, setRegion] = useState<RegionCode | ''>('');
   const [result, setResult] = useState<CalculatorResult | null>(null);
 
@@ -22,14 +22,14 @@ export const CalculatorForm: React.FC = () => {
     event.preventDefault();
 
     // Validate inputs
-    if (quantity <= 0 || pricePerItem <= 0 || !region) {
+    if (!quantity || !pricePerItem || !region || quantity <= 0 || pricePerItem <= 0) {
       return;
     }
 
     // Calculate the order
     const calculatedResult = calculateOrder({
-      quantity,
-      pricePerItem,
+      quantity: Number(quantity),
+      pricePerItem: Number(pricePerItem),
       region: region as RegionCode,
     });
 
