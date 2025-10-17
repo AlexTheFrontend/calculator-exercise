@@ -1,23 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import MenuItem from '@mui/material/MenuItem';
 import TextField, { TextFieldProps } from '@mui/material/TextField';
+import CircularProgress from '@mui/material/CircularProgress';
 import { RegionCode } from '@/types';
+import { fetchRegions, RegionOption } from '@/services/regionService';
 
 export interface RegionSelectorProps extends Omit<TextFieldProps, 'select'> {
   value: RegionCode | '';
   onRegionChange?: (region: RegionCode) => void;
 }
 
-const REGION_OPTIONS = [
-  { value: RegionCode.AUK, label: 'AUK - Auckland (6.85%)' },
-  { value: RegionCode.WLG, label: 'WLG - Wellington (8.00%)' },
-  { value: RegionCode.WAI, label: 'WAI - Waikato (6.25%)' },
-  { value: RegionCode.CHC, label: 'CHC - Christchurch (4.00%)' },
-  { value: RegionCode.TAS, label: 'TAS - Tasmania (8.25%)' },
-];
-
 /**
  * Region selector atom - Material UI Select/Dropdown for region codes
+ * Simulates async API call to fetch regions with 5-second delay
  */
 export const RegionSelector: React.FC<RegionSelectorProps> = ({
   value,
@@ -25,6 +20,26 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
   onChange,
   ...props
 }) => {
+  const [regions, setRegions] = useState<RegionOption[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isFetched, setIsFetched] = useState(false);
+
+  const loadRegions = async () => {
+    // Only fetch once
+    if (isFetched || loading) return;
+
+    setLoading(true);
+    try {
+      const fetchedRegions = await fetchRegions();
+      setRegions(fetchedRegions);
+      setIsFetched(true);
+    } catch (error) {
+      console.error('Failed to fetch regions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedValue = event.target.value as RegionCode;
 
@@ -39,18 +54,36 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
     }
   };
 
+  const handleOpen = () => {
+    loadRegions();
+  };
+
   return (
     <TextField
       select
       value={value}
       onChange={handleChange}
+      onFocus={handleOpen}
+      slotProps={{
+        select: {
+          onOpen: handleOpen,
+        },
+      }}
+      disabled={loading}
       {...props}
     >
-      {REGION_OPTIONS.map((option) => (
-        <MenuItem key={option.value} value={option.value}>
-          {option.label}
+      {loading ? (
+        <MenuItem disabled>
+          <CircularProgress size={20} sx={{ mr: 2 }} />
+          Loading regions...
         </MenuItem>
-      ))}
+      ) : (
+        regions.map((option) => (
+          <MenuItem key={option.value} value={option.value}>
+            {option.label}
+          </MenuItem>
+        ))
+      )}
     </TextField>
   );
 };
