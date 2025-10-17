@@ -14,6 +14,7 @@ const REGION_OPTIONS = [
   { value: RegionCode.WAI, label: 'WAI - Waikato (6.25%)' },
   { value: RegionCode.CHC, label: 'CHC - Christchurch (4.00%)' },
   { value: RegionCode.TAS, label: 'TAS - Tasmania (8.25%)' },
+  {value: RegionCode.NILL, label: 'Recursion test  (0%)'}
 ];
 
 /**

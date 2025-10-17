@@ -7,14 +7,16 @@ export enum RegionCode {
   WAI = 'WAI',
   CHC = 'CHC',
   TAS = 'TAS',
+  NILL = 'NILL', // No tax region
 }
 
 /**
- * Discount tier definition
+ * Discount tier definition with explicit bounds
  */
 export interface DiscountTier {
-  threshold: number;
-  rate: number;
+  threshold: number;    // Lower bound of this tier
+  upperBound: number;   // Upper bound of this tier (use Infinity for last tier)
+  rate: number;         // Discount rate for amounts in this tier
 }
 
 /**
