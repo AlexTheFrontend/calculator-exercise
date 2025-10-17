@@ -2,34 +2,53 @@ import { CalculatorInput, CalculatorResult } from '@/types';
 import { DISCOUNT_TIERS, getTaxRateForRegion } from './constants';
 
 /**
- * Calculate the applicable discount rate based on subtotal
- * @param subtotal - The order subtotal before discount
- * @returns The discount rate (0-1) or 0 if no discount applies
+ * Pseudo code example calculations:
+ * For $8,000 order:
+ * - $0-$1,000 (0%): $0 discount
+ * - $1,000-$5,000 ($4,000 at 3%): $120 discount
+ * - $5,000-$7,000 ($2,000 at 5%): $100 discount
+ * - $7,000-$8,000 ($1,000 at 7%): $70 discount
+ * Total: $290 discount
  */
-export const getDiscountRate = (subtotal: number): number => {
-  const tier = DISCOUNT_TIERS.find((tier) => subtotal >= tier.threshold);
-  return tier ? tier.rate : 0;
-};
-
-/**
- * Calculate the discount amount
- * @param subtotal - The order subtotal before discount
- * @param discountRate - The discount rate (0-1)
- * @returns The discount amount in dollars
- */
-export const calculateDiscountAmount = (
+export const calculateProgressiveDiscount = (
   subtotal: number,
-  discountRate: number
+  tierIndex: number = 0
 ): number => {
-  return subtotal * discountRate;
+  // Base case: reached end of tiers or subtotal is 0
+  if (tierIndex >= DISCOUNT_TIERS.length - 1 || subtotal <= 0) {
+    return 0;
+  }
+
+  const nextTier = DISCOUNT_TIERS[tierIndex + 1];
+
+  // If subtotal doesn't reach next tier threshold, no discount for this bracket
+  if (subtotal <= nextTier.threshold) {
+    return 0;
+  }
+
+  // Calculate amount in this bracket (capped at tier's upper bound)
+  const upperBound = Math.min(nextTier.upperBound, subtotal);
+  const amountInBracket = upperBound - nextTier.threshold;
+
+  // Discount for this bracket
+  const bracketDiscount = amountInBracket * nextTier.rate;
+
+  // Recursively calculate discount for next bracket
+  return bracketDiscount + calculateProgressiveDiscount(subtotal, tierIndex + 1);
 };
 
-/**
- * Calculate the tax amount based on discounted price and region
- * @param discountedPrice - The price after discount is applied
- * @param taxRate - The tax rate (0-1)
- * @returns The tax amount in dollars
- */
+export const getDiscountRate = (subtotal: number): number => {
+  if (subtotal <= 0) return 0;
+  const discountAmount = calculateProgressiveDiscount(subtotal);
+  return discountAmount / subtotal;
+};
+
+export const calculateDiscountAmount = (
+  subtotal: number
+): number => {
+  return calculateProgressiveDiscount(subtotal);
+};
+
 export const calculateTaxAmount = (
   discountedPrice: number,
   taxRate: number
@@ -50,7 +69,7 @@ export const calculateOrder = (input: CalculatorInput): CalculatorResult => {
 
   // Step 2: Determine and apply discount
   const discountRate = getDiscountRate(subtotal);
-  const discountAmount = calculateDiscountAmount(subtotal, discountRate);
+  const discountAmount = calculateDiscountAmount(subtotal);
   const discountedPrice = subtotal - discountAmount;
 
   // Step 3: Calculate tax
