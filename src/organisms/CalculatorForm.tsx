@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
+import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
 import { QuantityInput, PriceInput, RegionInput, ResultDisplay } from '@/molecules';
 import { SubmitButton } from '@/atoms';
 import { RegionCode, CalculatorResult } from '@/types';
@@ -17,14 +19,22 @@ export const CalculatorForm: React.FC = () => {
   const [pricePerItem, setPricePerItem] = useState<number | ''>('');
   const [region, setRegion] = useState<RegionCode | ''>('');
   const [result, setResult] = useState<CalculatorResult | null>(null);
+  const [calculating, setCalculating] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     // Validate inputs
     if (!quantity || !pricePerItem || !region || quantity <= 0 || pricePerItem <= 0) {
       return;
     }
+
+    // Set calculating state and clear previous result
+    setCalculating(true);
+    setResult(null);
+
+    // Simulate 5-second delay for calculation
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     // Calculate the order
     const calculatedResult = calculateOrder({
@@ -34,6 +44,7 @@ export const CalculatorForm: React.FC = () => {
     });
 
     setResult(calculatedResult);
+    setCalculating(false);
   };
 
   return (
@@ -56,13 +67,30 @@ export const CalculatorForm: React.FC = () => {
               onRegionChange={setRegion}
             />
 
-            <SubmitButton>
+            <SubmitButton disabled={calculating}>
               Calculate Total
             </SubmitButton>
           </Stack>
         </form>
 
-        {result && (
+        {calculating && (
+          <Box
+            sx={{
+              mt: 4,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 2,
+            }}
+          >
+            <CircularProgress />
+            <Typography variant="body1" color="text.secondary">
+              Please wait, calculating your total amount
+            </Typography>
+          </Box>
+        )}
+
+        {result && !calculating && (
           <Box sx={{ mt: 4 }}>
             <ResultDisplay result={result} />
           </Box>
